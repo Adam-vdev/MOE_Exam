@@ -16,7 +16,8 @@ import {
   RotateCcw,
   BookOpen,
   Award,
-  LogOut
+  LogOut,
+  Grid3X3
 } from 'lucide-react';
 import { QUESTIONS } from './data/questions';
 import { Question } from './types';
@@ -32,8 +33,9 @@ const shuffle = (array: any[]) => {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState<'home' | 'exam' | 'results'>('home');
+  const [screen, setScreen] = useState<'home' | 'exam' | 'results' | 'training'>('home');
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [trainingSearch, setTrainingSearch] = useState('');
 
   const [examQuestions, setExamQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -60,6 +62,97 @@ export default function App() {
     setTimeLeft(50 * 60);
     setScreen('exam');
   };
+
+  // Start Training
+  const startTraining = (selectedQuestions: Question[]) => {
+    setExamQuestions(shuffle(selectedQuestions));
+    setCurrentIndex(0);
+    setAnswers({});
+    setTimeLeft(selectedQuestions.length * 60); // 1 minute per question
+    setScreen('exam');
+  };
+
+  const sections = useMemo(() => {
+    const moeParts = [
+      // Part 1: Management
+      { id: '1.1', name: '1.1 Corporate commitment' },
+      { id: '1.2', name: '1.2 Safety policy & objectives' },
+      { id: '1.3', name: '1.3 Management personnel' },
+      { id: '1.4', name: '1.4 Duties & responsibilities' },
+      { id: '1.5', name: '1.5 Organization Chart' },
+      { id: '1.6', name: '1.6 List of Certifying Staff' },
+      { id: '1.7', name: '1.7 Manpower Resources' },
+      { id: '1.8', name: '1.8 Facilities' },
+      { id: '1.9', name: '1.9 Scope of Work' },
+      { id: '1.10', name: '1.10 Notification Procedure' },
+      { id: '1.11', name: '1.11 MOE Amendment' },
+      // Part 2: Procedures
+      { id: '2.1', name: '2.1 Supplier Eval & Subcontract' },
+      { id: '2.2', name: '2.2 Acceptance of Components' },
+      { id: '2.3', name: '2.3 Storage and Tagging' },
+      { id: '2.4', name: '2.4 Acceptance of Tools' },
+      { id: '2.5', name: '2.5 Calibration of Tools' },
+      { id: '2.6', name: '2.6 Use of Tooling' },
+      { id: '2.7', name: '2.7 Maintenance Cleanliness' },
+      { id: '2.8', name: '2.8 Maintenance Instructions' },
+      { id: '2.9', name: '2.9 Repair Procedure' },
+      { id: '2.10', name: '2.10 A/C Maint. Programme' },
+      { id: '2.11', name: '2.11 Airworthiness Directives' },
+      { id: '2.12', name: '2.12 Optional Analysis' },
+      { id: '2.13', name: '2.13 Maintenance Documentation' },
+      { id: '2.14', name: '2.14 Technical Record Control' },
+      { id: '2.15', name: '2.15 Rectification of Defects' },
+      { id: '2.16', name: '2.16 Release to Service' },
+      { id: '2.17', name: '2.17 Records for the Operator' },
+      { id: '2.18', name: '2.18 Occurrence Reporting' },
+      { id: '2.19', name: '2.19 Return of components' },
+      { id: '2.20', name: '2.20 Components to contractors' },
+      { id: '2.21', name: '2.21 Check/Task Card Issuance' },
+      { id: '2.22', name: '2.22 Man-hour plan' },
+      { id: '2.23', name: '2.23 Independent Inspection' },
+      { id: '2.24', name: '2.24 Specific Maint. Procedures' },
+      { id: '2.25', name: '2.25 Multiple Errors / Omissions' },
+      { id: '2.26', name: '2.26 Shift / Task Handover' },
+      { id: '2.30', name: '2.30 Part Fabrication' },
+      { id: '2.31', name: '2.31 Component Maintenance' },
+      { id: '2.32', name: '2.32 Maint. Away from Base' },
+      { id: '2.33', name: '2.33 Assessment of Scope' },
+      // Part L2
+      { id: 'L2', name: 'Part L2 Additional Line Maintenance Procedures' },
+      // Part 3: Quality
+      { id: '3.1', name: '3.1 Quality Audit of Org' },
+      { id: '3.2', name: '3.2 Quality Audit of A/C' },
+      { id: '3.4', name: '3.4 Product Audit' },
+      { id: '3.8', name: '3.8 Compliance Monitoring' },
+      { id: '3.9', name: '3.9 Staff Qualification' },
+      { id: '3.12', name: '3.12 Compliance Personnel' },
+      { id: '3.13', name: '3.13 Independent Insp. Staff' },
+      { id: '3.16', name: '3.16 Mechanics Qualification' },
+      { id: '3.19', name: '3.19 Competency Assessment' },
+      { id: '3.22', name: '3.22 Management Record Keeping' },
+      // Part 4 & 5
+      { id: '4.1', name: '4.1 List of Contracted Customers' },
+      { id: '4.2', name: '4.2 Customer Procedures/Paperwork' },
+      { id: '5.1', name: '5.1 Concession / Waiver' },
+      { id: '5.2', name: '5.2 Specialized Activities' },
+      { id: '5.3', name: '5.3 Line Maint. Locations' },
+      { id: '5.4', name: '5.4 Contracted Part-145 Org' },
+      { id: '5.5', name: '5.5 Component Similarity' },
+      { id: '12.2', name: '12.2 Safety Management' },
+      { id: '12.3', name: '12.3 Material Issuance' },
+    ];
+
+    const result = moeParts.map(part => ({
+      ...part,
+      filter: (q: Question) => q.section === part.id || q.text.includes(`MOE ${part.id}`) || (q.section === undefined && q.text.includes(part.id))
+    }));
+
+    // Add mandatory at the top
+    return [
+      { id: 'MANDATORY', name: 'Mandatory Questions (1001-1025)', filter: (q: Question) => q.id >= 1001 && q.id <= 1025 },
+      ...result
+    ];
+  }, []);
 
   // Timer Effect
   useEffect(() => {
@@ -115,8 +208,8 @@ export default function App() {
             </div>
             <h1 className="text-2xl font-bold tracking-tight mb-3">EASA MOE Exam Simulator</h1>
             <p className="text-slate-600 mb-8 text-sm">
-              Test your knowledge with 50 questions randomly selected from our database of 298. 
-              You have 50 minutes to complete the exam.
+              Test your knowledge with a set of questions randomly selected from our database of {QUESTIONS.length}. 
+              You have 1 minute per question.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
@@ -132,7 +225,7 @@ export default function App() {
                   <div className="bg-emerald-100 p-1.5 rounded-lg"><Timer className="w-4 h-4 text-emerald-600" /></div>
                   <span className="font-semibold text-slate-700 text-sm">Timed</span>
                 </div>
-                <p className="text-[11px] text-slate-500">50 minutes strict duration.</p>
+                <p className="text-[11px] text-slate-500">1 minute per question.</p>
               </div>
             </div>
  
@@ -141,12 +234,131 @@ export default function App() {
                 onClick={startExam}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
               >
-                Start Exam <Play className="w-5 h-5 fill-white" />
+                Start Full Exam <Play className="w-5 h-5 fill-white" />
+              </button>
+              <button 
+                onClick={() => setScreen('training')}
+                className="bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-3 px-8 rounded-xl text-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                Training by Section <BookOpen className="w-5 h-5" />
               </button>
             </div>
             <p className="mt-8 text-slate-400 text-sm italic">
               Based on EASA Maintenance and Engineering MOE Guidance
             </p>
+          </motion.div>
+        )}
+
+        {screen === 'training' && (
+          <motion.div 
+            key="training"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="max-w-2xl mx-auto pt-10 px-6"
+          >
+            <button 
+              onClick={() => setScreen('home')}
+              className="flex items-center gap-2 text-slate-500 font-bold mb-6 hover:text-slate-900 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" /> Back to Dashboard
+            </button>
+            
+            <h2 className="text-2xl font-bold mb-2">Training by Section</h2>
+            <p className="text-slate-500 mb-8 text-sm">Select a specific MOE chapter to practice all related questions.</p>
+
+            <div className="grid grid-cols-1 gap-2">
+              {sections.map((sec, idx) => {
+                const questions = QUESTIONS.filter(sec.filter);
+                const count = questions.length;
+                const isDisabled = count === 0;
+                
+                return (
+                  <button
+                    key={sec.id}
+                    disabled={isDisabled}
+                    onClick={() => startTraining(questions)}
+                    className={`p-4 rounded-xl border transition-all text-left flex justify-between items-center group ${
+                      isDisabled 
+                        ? 'bg-slate-50 border-slate-100 opacity-60 cursor-not-allowed' 
+                        : 'bg-white border-slate-200 hover:border-blue-500 hover:shadow-lg active:scale-[0.98]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm transition-colors ${
+                        isDisabled 
+                          ? 'bg-slate-100 text-slate-300' 
+                          : 'bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <h3 className={`font-bold transition-colors leading-tight ${
+                          isDisabled ? 'text-slate-400' : 'text-slate-800 group-hover:text-blue-600'
+                        }`}>{sec.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            isDisabled ? 'bg-slate-100 text-slate-300' : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {count} Questions
+                          </span>
+                          {!isDisabled && <span className="text-[10px] text-slate-400">Practice now</span>}
+                        </div>
+                      </div>
+                    </div>
+                    {!isDisabled && (
+                      <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <ChevronRight className="w-5 h-5" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+              
+              <button
+                onClick={() => startTraining(QUESTIONS)}
+                className="mt-4 bg-slate-900 p-5 rounded-xl text-white hover:bg-slate-800 shadow-xl transition-all flex justify-between items-center active:scale-95"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                    <Grid3X3 className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Practice All Questions</h3>
+                    <p className="text-xs text-slate-400 font-medium">Complete set of {QUESTIONS.length} questions</p>
+                  </div>
+                </div>
+                <Play className="w-6 h-6 fill-white" />
+              </button>
+
+              {/* Custom Search Filter */}
+              <div className="mt-6 p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                <h3 className="font-bold text-blue-900 mb-2 text-sm uppercase tracking-wider">Custom Section Search</h3>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="e.g. 3.9 or Calibration"
+                    className="flex-grow bg-white border border-blue-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={trainingSearch}
+                    onChange={(e) => setTrainingSearch(e.target.value)}
+                  />
+                  <button 
+                    onClick={() => {
+                      const filtered = QUESTIONS.filter(q => 
+                        q.text.toLowerCase().includes(trainingSearch.toLowerCase()) || 
+                        q.options.some(o => o.text.toLowerCase().includes(trainingSearch.toLowerCase()))
+                      );
+                      if (filtered.length > 0) startTraining(filtered);
+                      else alert('No questions found for this search.');
+                    }}
+                    className="bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-sm"
+                  >
+                    Go
+                  </button>
+                </div>
+                <p className="mt-2 text-[11px] text-blue-400 font-medium">Search for identifiers like "2.18" or "Form 118" to find specific topics.</p>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -173,7 +385,7 @@ export default function App() {
                     />
                   </svg>
                   <span className="absolute text-[10px] font-bold text-slate-700">
-                    {currentIndex + 1}/50
+                    {currentIndex + 1}/{examQuestions.length}
                   </span>
                 </div>
                 <div className="hidden sm:block">
@@ -364,7 +576,7 @@ export default function App() {
                 </div>
                 <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Time Spent</p>
-                  <p className="text-4xl font-black">{formatTime((50 * 60) - timeLeft)}</p>
+                  <p className="text-4xl font-black">{formatTime((examQuestions.length * 60) - timeLeft)}</p>
                 </div>
               </div>
 

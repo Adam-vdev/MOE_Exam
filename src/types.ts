@@ -7,6 +7,7 @@ export interface Question {
   }[];
   correctAnswer: string;
   page: string;
+  section?: string;
 }
 
 export interface ExamState {
