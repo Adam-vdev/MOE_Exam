@@ -17,7 +17,8 @@ import {
   BookOpen,
   Award,
   LogOut,
-  Grid3X3
+  Grid3X3,
+  Shuffle
 } from 'lucide-react';
 import { QUESTIONS } from './data/questions';
 import { Question } from './types';
@@ -36,39 +37,66 @@ export default function App() {
   const [screen, setScreen] = useState<'home' | 'exam' | 'results' | 'training'>('home');
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [trainingSearch, setTrainingSearch] = useState('');
+  const [shuffleOptions, setShuffleOptions] = useState(true);
 
   const [examQuestions, setExamQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [answers, setAnswers] = useState<Record<string | number, string>>({});
   const [timeLeft, setTimeLeft] = useState(50 * 60); // 50 minutes in seconds
 
   // Initialize Exam
   const startExam = () => {
-    // 1. Get the mandatory 25 questions (Part 1: ids 1001 to 1025)
-    const mandatoryQuestions = QUESTIONS.filter(q => q.id >= 1001 && q.id <= 1025);
+    // 1. Get the mandatory 25 questions (Part 1: ids starting with M)
+    const mandatoryQuestions = QUESTIONS.filter(q => typeof q.id === 'string' && q.id.startsWith('M'));
     
     // 2. Get the rest of the questions (Part 2)
-    const remainingPool = QUESTIONS.filter(q => q.id < 1001 || q.id > 1025);
+    const remainingPool = QUESTIONS.filter(q => !(typeof q.id === 'string' && q.id.startsWith('M')));
     
     // 3. Shuffle the pool and take 25 random questions
     const randomQuestions = shuffle(remainingPool).slice(0, 25);
     
     // 4. Combine and shuffle the final 50 questions
-    const finalSet = shuffle([...mandatoryQuestions, ...randomQuestions]);
+    let finalSet = shuffle([...mandatoryQuestions, ...randomQuestions]);
     
+    // Optional: Shuffle options for each question
+    if (shuffleOptions) {
+      finalSet = finalSet.map(q => {
+        const specialOptions = q.options.filter(opt => opt.text.toLowerCase().includes('a & b'));
+        const normalOptions = q.options.filter(opt => !opt.text.toLowerCase().includes('a & b'));
+        return {
+          ...q,
+          options: [...shuffle(normalOptions), ...specialOptions]
+        };
+      });
+    }
+
     setExamQuestions(finalSet);
     setCurrentIndex(0);
     setAnswers({});
-    setTimeLeft(50 * 60);
+    setTimeLeft(finalSet.length * 60); // 1 minute per question
     setScreen('exam');
   };
 
   // Start Training
   const startTraining = (selectedQuestions: Question[]) => {
-    setExamQuestions(shuffle(selectedQuestions));
+    let finalSet = [...selectedQuestions];
+
+    // Optional: Shuffle options for each question
+    if (shuffleOptions) {
+      finalSet = finalSet.map(q => {
+        const specialOptions = q.options.filter(opt => opt.text.toLowerCase().includes('a & b'));
+        const normalOptions = q.options.filter(opt => !opt.text.toLowerCase().includes('a & b'));
+        return {
+          ...q,
+          options: [...shuffle(normalOptions), ...specialOptions]
+        };
+      });
+    }
+
+    setExamQuestions(finalSet);
     setCurrentIndex(0);
     setAnswers({});
-    setTimeLeft(selectedQuestions.length * 60); // 1 minute per question
+    setTimeLeft(finalSet.length * 60); // 1 minute per question
     setScreen('exam');
   };
 
@@ -113,6 +141,8 @@ export default function App() {
       { id: '2.24', name: '2.24 Specific Maint. Procedures' },
       { id: '2.25', name: '2.25 Multiple Errors / Omissions' },
       { id: '2.26', name: '2.26 Shift / Task Handover' },
+      { id: '2.27', name: '2.27 Data Ambiguities' },
+      { id: '2.28', name: '2.28 Production Planning' },
       { id: '2.30', name: '2.30 Part Fabrication' },
       { id: '2.31', name: '2.31 Component Maintenance' },
       { id: '2.32', name: '2.32 Maint. Away from Base' },
@@ -127,19 +157,24 @@ export default function App() {
       { id: '3.9', name: '3.9 Staff Qualification' },
       { id: '3.12', name: '3.12 Compliance Personnel' },
       { id: '3.13', name: '3.13 Independent Insp. Staff' },
-      { id: '3.16', name: '3.16 Mechanics Qualification' },
+      { id: '3.14', name: '3.14 Mechanics Qualification' },
+      { id: '3.15', name: '3.15 Exemption Process' },
+      { id: '3.16', name: '3.16 Concession Control' },
+      { id: '3.17', name: '3.17 Specialized Activities' },
+      { id: '3.18', name: '3.18 Working Teams' },
       { id: '3.19', name: '3.19 Competency Assessment' },
       { id: '3.22', name: '3.22 Management Record Keeping' },
       // Part 4 & 5
-      { id: '4.1', name: '4.1 List of Contracted Customers' },
-      { id: '4.2', name: '4.2 Customer Procedures/Paperwork' },
-      { id: '5.1', name: '5.1 Concession / Waiver' },
-      { id: '5.2', name: '5.2 Specialized Activities' },
+      { id: '4.1', name: '4.1 Contracted Customers' },
+      { id: '4.2', name: '4.2 Customer Paperwork' },
       { id: '5.3', name: '5.3 Line Maint. Locations' },
-      { id: '5.4', name: '5.4 Contracted Part-145 Org' },
+      { id: '5.4', name: '5.4 Contracted Part-145' },
       { id: '5.5', name: '5.5 Component Similarity' },
-      { id: '12.2', name: '12.2 Safety Management' },
-      { id: '12.3', name: '12.3 Material Issuance' },
+      { id: '12.2.1', name: '12.2.1 PMA Procedures' },
+      { id: '12.2.3', name: '12.2.3 Material Issuance' },
+      { id: '12.2.6', name: '12.2.6 Tool Fabrication' },
+      { id: '12.2.8', name: '12.2.8 JIC Issuance' },
+      { id: '12.3.9', name: '12.3.9 Training & Similarity' },
     ];
 
     const result = moeParts.map(part => ({
@@ -149,7 +184,7 @@ export default function App() {
 
     // Add mandatory at the top
     return [
-      { id: 'MANDATORY', name: 'Mandatory Questions (1001-1025)', filter: (q: Question) => q.id >= 1001 && q.id <= 1025 },
+      { id: 'MANDATORY', name: 'Mandatory Questions (M01-M25)', filter: (q: Question) => typeof q.id === 'string' && q.id.startsWith('M') },
       ...result
     ];
   }, []);
@@ -173,7 +208,7 @@ export default function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswer = (questionId: number, answer: string) => {
+  const handleAnswer = (questionId: string | number, answer: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
@@ -227,6 +262,25 @@ export default function App() {
                 </div>
                 <p className="text-[11px] text-slate-500">1 minute per question.</p>
               </div>
+            </div>
+
+            {/* Shuffling Toggle */}
+            <div className="mb-8 flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200">
+              <div className="flex items-center gap-3 text-left">
+                <div className="bg-blue-50 p-2 rounded-xl">
+                  <Shuffle className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-xs">Shuffle Options</p>
+                  <p className="text-[10px] text-slate-500">Randomize answer order</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShuffleOptions(!shuffleOptions)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${shuffleOptions ? 'bg-blue-600' : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${shuffleOptions ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
             </div>
  
             <div className="flex flex-col sm:flex-row justify-center gap-3">

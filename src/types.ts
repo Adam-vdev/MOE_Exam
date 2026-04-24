@@ -1,5 +1,5 @@
 export interface Question {
-  id: number;
+  id: string | number;
   text: string;
   options: {
     key: string;
@@ -13,7 +13,7 @@ export interface Question {
 export interface ExamState {
   questions: Question[];
   currentQuestionIndex: number;
-  userAnswers: Record<number, string>;
+  userAnswers: Record<string | number, string>;
   isFinished: false;
   timeRemaining: number;
 }
