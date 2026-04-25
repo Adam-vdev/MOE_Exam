@@ -179,7 +179,7 @@ export default function App() {
 
     const result = moeParts.map(part => ({
       ...part,
-      filter: (q: Question) => q.section === part.id || q.text.includes(`MOE ${part.id}`) || (q.section === undefined && q.text.includes(part.id))
+      filter: (q: Question) => (q.section === part.id || q.text.includes(`MOE ${part.id}`) || (q.section === undefined && q.text.includes(part.id))) && !(typeof q.id === 'string' && q.id.startsWith('M'))
     }));
 
     // Add mandatory at the top
