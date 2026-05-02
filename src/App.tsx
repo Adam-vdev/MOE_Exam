@@ -109,16 +109,15 @@ export default function App() {
   const sections = useMemo(() => {
     // Get all unique sections from all questions
     const uniqueSections = Array.from(new Set(QUESTIONS.map(q => q.section)))
-      .filter(Boolean)
+      .filter(s => s && s !== "(MOE Necessarily Known)") // Skip mandatory as it is added manually
       .sort((a, b) => {
         const getPriority = (s: string) => {
-          if (s.startsWith('1.')) return 1;
-          if (s.startsWith('2.')) return 2;
-          if (s.startsWith('L2')) return 2.5;
-          if (s.startsWith('3.')) return 3;
-          if (s.startsWith('4.')) return 4;
-          if (s.startsWith('5.')) return 5;
-          if (s.startsWith('12.')) return 12;
+          const content = s.replace(/[()]/g, '');
+          if (content.startsWith('1.')) return 1;
+          if (content.startsWith('2.')) return 2;
+          if (content.includes('L2')) return 2.5; 
+          if (content.startsWith('3.')) return 3;
+          if (content.startsWith('4.')) return 4;
           return 99;
         };
         const pA = getPriority(a);
