@@ -556,12 +556,18 @@ export default function App() {
                 <div className="bg-white w-full rounded-2xl shadow-lg border border-slate-200 p-4 md:p-6">
                   <div className="mb-4">
                     <div className="flex justify-between items-start mb-2 gap-3">
-                      <span className="inline-block bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        Q{currentIndex + 1} (Ref: #{currentQuestion.id})
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="inline-block bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1 w-fit">
+                          Question {currentIndex + 1}
+                        </span>
+                        <span className="inline-block bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit">
+                          PDF Question #{currentQuestion.pdfNumber}
+                        </span>
+                      </div>
                       {mode === 'training' && (
-                        <div className="flex items-center gap-2 bg-emerald-600 text-white px-3 py-1.5 rounded-lg shadow-sm">
-                          <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">MOE issue 27 R0 | P.</span>
+                        <div className="flex items-center gap-3 bg-emerald-600 text-white px-3 py-2 rounded shadow-sm border border-emerald-500">
+                          <span className="text-sm md:text-base font-bold whitespace-nowrap">MOE issue 27 R0</span>
+                          <div className="w-px h-5 bg-white/30" />
                           <span className="text-sm md:text-base font-black leading-none">{currentQuestion.page}</span>
                         </div>
                       )}
@@ -720,7 +726,10 @@ export default function App() {
                   >
                     <div className="flex justify-between items-start gap-4 mb-4">
                       <div className="flex-grow">
-                        <span className="text-xs font-bold text-slate-400 uppercase mb-1 block">Question {idx + 1} (Ref: #{q.id})</span>
+                        <div className="flex flex-wrap gap-2 mb-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">Question {idx + 1}</span>
+                          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded">PDF Reference #{q.pdfNumber}</span>
+                        </div>
                         <h4 className="text-lg font-semibold">{q.text}</h4>
                       </div>
                       <div className="flex-shrink-0">

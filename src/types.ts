@@ -1,5 +1,6 @@
 export interface Question {
   id: string | number;
+  pdfNumber: string | number;
   text: string;
   options: {
     key: string;
